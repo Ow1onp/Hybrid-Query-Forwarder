@@ -1,43 +1,83 @@
-# Hybrid Query Forwarder (HQF) Server Guide
+# Hybrid Query Forwarder (HQF) Server
 
 ## Introduction
-The Hybrid Query Forwarder (HQF) server is a port forwarding server designed to streamline the process of request forwarding and efficiently route queries to a designated target. This guide provides basic steps for setting up and testing your HQF server, making it accessible for users without an extensive background in networking.
+The Hybrid Query Forwarder server, built with FastAPI, is an efficient and asynchronous forwarding server. It's designed to handle and forward queries from various sources such as Chatbots and local knowledge bases.
 
-## Step 1: Downloading the Server Source Files
-The source code for the HQF server can be downloaded from the provided resources. These files are typically hosted on code-sharing platforms like GitHub. Follow the instructions on the platform to download the files, ensuring you obtain the latest version to avoid potential compatibility issues.
+## Development Log
 
-## Step 2: Running the Chatbot and Local Knowledge Base
-Before launching the HQF server, it is necessary to start the components that will interact with the server, which usually include a Chatbot and a local knowledge base. Follow the instructions for these components to ensure they are running correctly before initiating the HQF server.
+### Features
+- Asynchronous network request handling for improved response efficiency.
+- Flexible server configuration through environment variables.
+- Clear error handling and logging.
 
-## Step 3: Launching the Server
-After starting the necessary auxiliary components, you can proceed to launch the HQF server:
+### Functionality
+- Forwards query requests to configured B and C servers.
+- Decides whether to forward to C server based on the response from B server.
+- Records exceptions during the request process in detail.
 
-1. Open your terminal or command line interface.
-2. Enter the following command to start the service:
-   ```
-   uvicorn main:app --host 0.0.0.0 --port 5000
-   ```
-   This command tells Uvicorn, an AsyncIO server, to run `main:app`, where `main` is typically the Python file name and `app` is the FastAPI application instance in the file. The `--host 0.0.0.0` allows the server to be open to all network interfaces, while `--port 5000` specifies that the service runs on port 5000.
+### Technology Stack
+- Python
+- FastAPI
+- httpx (Asynchronous HTTP Client)
 
-## Step 4: Testing with Postman
-Postman is a popular API development tool used for testing server responses. Here’s how to test your HQF server with Postman:
+### Code Analysis
+For a detailed code analysis, see [here](#code-analysis).
 
-1. Open Postman.
-2. Enter your HQF server URL in the following format:
-   ```
-   http://192.168.0.xxx:5000/forward/xxxx
-   ```
-3. As an example, if you want to ask about "snacks in Yunnan," you would enter:
-   ```
-   http://192.168.0.94:5000/forward/Introduce snacks in Yunnan
-   ```
-4. Send the request and wait to view the response.
+## Usage Guide
 
-`192.168.0.xxx` represents your host machine's LAN IP address, and `xxxx` represents the question you wish to ask.
+### Step 1: Download Server Source Files
+Download the latest version of the HQF server source code from GitHub or similar platforms.
 
-## Important Notes
-- Ensure that your server and Postman are on the same network.
-- If you encounter connection issues, check if your firewall settings are blocking the HQF server.
-- Using `0.0.0.0` as the host makes your service visible to all devices on the network, so be aware of potential security risks.
+### Step 2: Run Chatbot and Local Knowledge Base
+Ensure all components interacting with the HQF server (like Chatbot and local knowledge base) are running correctly.
 
-By following these steps, you should now be able to successfully set up and test your Hybrid Query Forwarder server, enjoying an efficient and seamless query forwarding experience.
+### Step 3: Start the Server
+1. Open a terminal or command-line interface.
+2. Run `uvicorn main:app --host 0.0.0.0 --port 5000`.
+
+### Step 4: Test with Postman
+Send requests to your HQF server using Postman and observe the responses.
+
+### Important Notes
+- Ensure the server and Postman are on the same network.
+- Check firewall settings to ensure they don't block the HQF server.
+- Be aware of the security risks associated with using 0.0.0.0 as the host.
+
+## Environment Configuration Checklist
+- Ensure Python and FastAPI are installed.
+- Set B_SERVER_URL and C_SERVER_URL as environment variables.
+- Ensure httpx library is installed for asynchronous HTTP requests.
+
+## Test Example
+Here's a simple test instance to measure the response time of the server:
+```python
+import requests
+import time
+
+server_url = 'http://xxx.xxx.x.xx:5000/forward/介绍一下北京的小吃'
+num_requests = 100
+response_times = []
+
+for i in range(num_requests):
+    start_time = time.time()
+    response = requests.get(server_url)
+    end_time = time.time()
+
+    duration = end_time - start_time
+    response_times.append(duration)
+    print(f'Request {i + 1}/{num_requests}: {response.status_code} in {duration:.4f} seconds, Response: {response.text}')
+
+average_time = sum(response_times) / len(response_times)
+print(f'\nAverage response time: {average_time:.4f} seconds')
+```
+Use this script to measure the average, max, and min response times for a set number of requests.
+
+## Contribution
+Contributions to the HQF server are welcome, whether they are feature suggestions, code improvements, or bug reports.
+
+## License
+This project is licensed under the MIT License. For more details, see the LICENSE file.
+
+---
+
+This README.md aims to provide a comprehensive understanding of the Hybrid Query Forwarder server, including its functionality, development log, and usage guide. It should assist developers in using and contributing to the project.
