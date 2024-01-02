@@ -3,18 +3,17 @@ import logging
 from fastapi import FastAPI, HTTPException
 import httpx
 
-# 配置日志
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# 服务器配置
-B_SERVER_URL = os.getenv('B_SERVER_URL', 'http://192.168.0.94:9090/query/')
-C_SERVER_URL = os.getenv('C_SERVER_URL', 'http://192.168.1.206:7861/chat/knowledge_base_chat')
-TIMEOUT = 15  # 调整超时时间
+# Server configuration
+B_SERVER_URL = os.getenv('B_SERVER_URL', 'http://[B_SERVER_IP]:[B_SERVER_PORT]/query/')
+C_SERVER_URL = os.getenv('C_SERVER_URL', 'http://[C_SERVER_IP]:[C_SERVER_PORT]/chat/knowledge_base_chat')
+TIMEOUT = 15  # Set timeout duration
 
 app = FastAPI()
 
-
-# 异步获取B服务器响应
+# Asynchronously get response from B server
 async def get_b_server_response(query_string):
     async with httpx.AsyncClient() as client:
         try:
@@ -22,11 +21,10 @@ async def get_b_server_response(query_string):
             response.raise_for_status()
             return response.json()
         except (httpx.HTTPError, Exception) as exc:
-            logging.exception(f"请求B服务器失败: {exc}")
+            logging.exception(f"Failed to request B server: {exc}")
             return None
 
-
-# 异步获取C服务器响应
+# Asynchronously get response from C server
 async def get_c_server_response(query_string):
     c_server_payload = {
         "query": query_string,
@@ -46,18 +44,17 @@ async def get_c_server_response(query_string):
             response.raise_for_status()
             return response.json()
         except (httpx.HTTPError, Exception) as exc:
-            logging.exception("请求C服务器失败")
+            logging.exception("Failed to request C server")
             return None
 
-
-# 路由
+# Route
 @app.get('/forward/{query_string}')
 async def forward_query(query_string: str):
     b_response = await get_b_server_response(query_string)
     if b_response is None:
-        raise HTTPException(status_code=500, detail="B服务器未能提供响应")
+        raise HTTPException(status_code=500, detail="B server did not provide a response")
 
-    # 从 B 服务器返回的答案中提取纯文本
+    # Extract plain text from the answer returned by B server
     answer_b = b_response.get("data", {}).get("answer", "")
 
     if b_response.get("data", {}).get("ratio", 0) < 55.0:
@@ -66,16 +63,14 @@ async def forward_query(query_string: str):
             if answer_b:
                 return answer_b
             else:
-                raise HTTPException(status_code=502, detail="C服务器未能提供响应，且B服务器没有有效答案")
+                raise HTTPException(status_code=502, detail="C server did not provide a response, and B server has no valid answer")
 
-        # 从 C 服务器返回的答案中提取纯文本
+        # Extract plain text from the answer returned by C server
         answer_c = c_response.get("answer", "")
         return answer_c
 
     return answer_b
 
-
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=5000, log_level="info")
