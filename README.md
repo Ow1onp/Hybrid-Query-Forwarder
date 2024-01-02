@@ -54,8 +54,13 @@ Here's a simple test instance to measure the response time of the server:
 import requests
 import time
 
-server_url = 'http://xxx.xxx.x.xx:5000/forward/介绍一下北京的小吃'
+
+server_url = 'http://192.168.0.94:5000/forward/介绍一下云南的小吃'
+
+
 num_requests = 100
+
+
 response_times = []
 
 for i in range(num_requests):
@@ -65,7 +70,19 @@ for i in range(num_requests):
 
     duration = end_time - start_time
     response_times.append(duration)
-    print(f'Request {i + 1}/{num_requests}: {response.status_code} in {duration:.4f} seconds, Response: {response.text}')
+
+    
+    if response.status_code == 200:
+        print(f'Request {i + 1}/{num_requests}: {response.status_code} in {duration:.4f} seconds, Response: {response.text}')
+    else:
+        print(f'Request {i + 1}/{num_requests}: Error {response.status_code} in {duration:.4f} seconds')
+
+average_time = sum(response_times) / len(response_times)
+max_time = max(response_times)
+min_time = min(response_times)
+print(f'\nAverage response time: {average_time:.4f} seconds')
+print(f'Max response time: {max_time:.4f} seconds')
+print(f'Min response time: {min_time:.4f} seconds')
 
 average_time = sum(response_times) / len(response_times)
 print(f'\nAverage response time: {average_time:.4f} seconds')
